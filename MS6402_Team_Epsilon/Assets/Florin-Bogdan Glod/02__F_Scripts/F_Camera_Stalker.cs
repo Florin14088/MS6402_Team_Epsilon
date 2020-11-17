@@ -5,7 +5,6 @@ using UnityEngine;
 public class F_Camera_Stalker : MonoBehaviour
 {
     public Transform targetPos;
-    public Transform targetRot;
 
     
 
@@ -13,7 +12,6 @@ public class F_Camera_Stalker : MonoBehaviour
     void Update()
     {
         transform.position = targetPos.position;
-        //transform.rotation = targetRot.rotation;
 
     }//Update
 
