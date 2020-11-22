@@ -101,7 +101,7 @@ public class F_FEAR_Mechanic : MonoBehaviour
         {
             containerFear = fear_meter;//change the last known value of fear_meter;
 
-            needleFear_UI.transform.rotation = Quaternion.Euler(0 , 0 , -fear_meter * 180/100);
+            needleFear_UI.transform.rotation = Quaternion.Euler(0 , 0 , 90 - (fear_meter * 1.8f));//1.8f = 180/100 (frica e de la 0 la 100, acul se invarte de la 90 la -90)
 
         }
 

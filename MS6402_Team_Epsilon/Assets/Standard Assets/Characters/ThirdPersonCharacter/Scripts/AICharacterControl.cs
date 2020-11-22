@@ -1,15 +1,16 @@
 using System;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace UnityStandardAssets.Characters.ThirdPerson
 {
-    [RequireComponent(typeof (UnityEngine.AI.NavMeshAgent))]
+    [RequireComponent(typeof (NavMeshAgent))]
     [RequireComponent(typeof (ThirdPersonCharacter))]
     public class AICharacterControl : MonoBehaviour
     {
-        public UnityEngine.AI.NavMeshAgent agent { get; private set; }             // the navmesh agent required for the path finding
-        public ThirdPersonCharacter character { get; private set; } // the character we are controlling
-        public Transform target;                                    // target to aim for
+        public UnityEngine.AI.NavMeshAgent agent { get; private set; }
+        public ThirdPersonCharacter character { get; private set; }
+        public Transform target; 
 
 
         private void Start()
@@ -20,7 +21,8 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
 	        agent.updateRotation = false;
 	        agent.updatePosition = true;
-        }
+
+        }//Start
 
 
         private void Update()
@@ -32,12 +34,19 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                 character.Move(agent.desiredVelocity, false, false);
             else
                 character.Move(Vector3.zero, false, false);
-        }
+
+        }//Update
+
 
 
         public void SetTarget(Transform target)
         {
             this.target = target;
-        }
-    }
-}
+
+        }//SetTarget
+
+
+    }//END
+
+
+}//Real END
