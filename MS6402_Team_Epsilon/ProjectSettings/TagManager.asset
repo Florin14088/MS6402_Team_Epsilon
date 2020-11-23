@@ -36,7 +36,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - L_Walls
   m_SortingLayers:
   - name: Default
     uniqueID: 0
