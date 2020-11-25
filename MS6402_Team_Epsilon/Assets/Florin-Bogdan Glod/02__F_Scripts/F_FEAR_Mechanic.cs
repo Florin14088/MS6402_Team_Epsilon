@@ -94,6 +94,7 @@ public class F_FEAR_Mechanic : MonoBehaviour
             }
 
             if (fear_meter < 0) fear_meter = 0;
+            if (fear_meter > 100) fear_meter = 100;
         }
 
 
