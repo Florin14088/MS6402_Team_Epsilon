@@ -7,17 +7,17 @@ public class F_Door_Helper : MonoBehaviour
     public bool b_v1 = false;
     public bool b_none = false;
 
-    private F_Door_Controller __scriptDoorCont;
+    public F_Door_Controller __scriptDoorCont;
 
 
     private void Start()
     {
-        __scriptDoorCont = gameObject.transform.root.transform.gameObject.GetComponent<F_Door_Controller>();
+        //__scriptDoorCont = gameObject.transform.root.transform.gameObject.GetComponent<F_Door_Controller>();
 
     }
 
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
         if(other.gameObject.tag == __scriptDoorCont.interestTag)
         {
