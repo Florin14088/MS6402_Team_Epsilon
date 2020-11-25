@@ -35,7 +35,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - Editor_Only
   - L_Walls
   m_SortingLayers:
   - name: Default
