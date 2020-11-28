@@ -5,7 +5,7 @@ using UnityEngine;
 public class FanRotation : MonoBehaviour
 {
 
-   public float spinSpeed = 10.0f;
+   public float spinSpeed;
 
     // Start is called before the first frame update
     void Start()
@@ -16,6 +16,6 @@ public class FanRotation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.Rotate( 0, spinSpeed, 0);
+        transform.Rotate( 0, spinSpeed * Time.deltaTime, 0);
     }
 }

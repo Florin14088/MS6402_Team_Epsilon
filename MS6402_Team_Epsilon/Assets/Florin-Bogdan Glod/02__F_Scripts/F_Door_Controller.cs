@@ -36,7 +36,7 @@ public class F_Door_Controller : MonoBehaviour
 
     void Start()
     {
-        anim = GetComponent<Animator>(); 
+        anim = GetComponentInChildren<Animator>(); 
         uiPan_txt.text = " ";
         uiPan_Feedback.SetActive(false);
         b_inRange = false;
@@ -88,6 +88,7 @@ public class F_Door_Controller : MonoBehaviour
 
     IEnumerator Door_Busy_Opening()
     {
+        Debug.Log("Door_ Opening");
         b_readyToUse = false;
 
         if (b_I_am_v1) anim.SetInteger("Pain", 5);
@@ -103,6 +104,7 @@ public class F_Door_Controller : MonoBehaviour
 
     IEnumerator Door_Busy_Closing()
     {
+        Debug.Log("Door_ Closing");
         b_readyToUse = false;
 
         if (anim.GetInteger("Pain") == 5) anim.SetInteger("Pain" , 4);

@@ -21,6 +21,8 @@ public class F_Door_Helper : MonoBehaviour
     {
         if(other.gameObject.tag == __scriptDoorCont.interestTag)
         {
+
+            Debug.Log("Trigger stay");
             __scriptDoorCont.b_inRange = true;
 
             if (b_none) return;
