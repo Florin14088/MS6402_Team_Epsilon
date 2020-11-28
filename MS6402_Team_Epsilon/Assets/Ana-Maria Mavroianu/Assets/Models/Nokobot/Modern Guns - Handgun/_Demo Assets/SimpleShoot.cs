@@ -27,6 +27,7 @@ public class SimpleShoot : MonoBehaviour
     [HideInInspector] public bool b_processFinished = false; //used in coroutine that is reloading the weapon to prevent weapon being reloaded more than once per reloading
     [Tooltip("How much it takes to reload?")] public float durationReloading = 2f;
     [Tooltip("Which key to press for reload?")] public KeyCode reloadKey = KeyCode.R;
+     public bool b_externalPermission = false;//manipulated by F_Player_Helpers.cs script
 
     [Header("Settings")]
     [Tooltip("Specify time to destory the casing object")] [SerializeField] private float destroyTimer_casing = 2f;
@@ -67,7 +68,7 @@ public class SimpleShoot : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Mouse1) == false) return;//first aim, then fire
 
-        if (Input.GetKey(KeyCode.Mouse0))//fire
+        if (Input.GetKey(KeyCode.Mouse0) && b_externalPermission)//fire
         {
             if(Time.time > next_CooldownFire)
             {
