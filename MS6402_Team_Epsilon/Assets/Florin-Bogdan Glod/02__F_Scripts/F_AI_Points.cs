@@ -12,7 +12,7 @@ public class F_AI_Points : MonoBehaviour
     public float timeReset = 5;//when the NPC starts to get dissolved, the script will wait for this amount of time before returning the NPC to initial position with normal materials
     [Space]
     public GameObject child_NPC;
-    public SkinnedMeshRenderer sk_meshRen_child;
+    public Renderer sk_meshRen_child;
 
 
     public List<Material> matList = new List<Material>();
@@ -27,10 +27,10 @@ public class F_AI_Points : MonoBehaviour
         child_NPC.SetActive(false);
         shader_dissolv = Shader.Find("Shader Graphs/Dissolve 1");    // asign shaders value
         shader_lit = Shader.Find("Universal Render Pipeline/Lit");
-        foreach (Material m in matList)
-        {
-            m.shader = shader_lit;
-        }
+        //foreach (Material m in matList)
+        //{
+        //    m.shader = shader_lit;
+        //}
     }//Start
 
 
@@ -63,10 +63,21 @@ public class F_AI_Points : MonoBehaviour
 
         yield return new WaitForSeconds(timeDissapear);
 
-        foreach (Material m in matList)
-        {
-            m.shader = shader_dissolv;
-        }
+        //foreach (Material m in matList)
+        //{
+        //    m.shader = shader_dissolv;
+        //}
+
+
+        //foreach (Material m in gameObject.GetComponent<Renderer>().materials)
+        //{
+        //    m.shader = shader_dissolv;
+        //}
+
+        Debug.Log($"Name of materials is {sk_meshRen_child.materials[0]}");
+
+        sk_meshRen_child.materials[0].shader = shader_dissolv;
+        sk_meshRen_child.materials[1].shader = shader_dissolv;
 
         StartCoroutine(Waiting_Reset());
         b_player_Been_Here = false;
@@ -81,6 +92,7 @@ public class F_AI_Points : MonoBehaviour
         
         Destroy(gameObject);
     }
+
 
     private void OnDestroy()
     {

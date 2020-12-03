@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [AddComponentMenu("Nokobot/Modern Guns/Simple Shoot")]
 public class SimpleShoot : MonoBehaviour
@@ -9,11 +10,6 @@ public class SimpleShoot : MonoBehaviour
     public GameObject bulletPrefab;
     public GameObject casingPrefab;
     public GameObject muzzleFlashPrefab;
-
-    [Header("Location Refrences")]
-    [SerializeField] private Animator anim;
-    [SerializeField] private Transform barrelLocation;
-    [SerializeField] private Transform casingExitLocation;
 
     [Header("Weapon Stats")]
     [Tooltip("The most ammo that the player can have at any given moment")] public float maxAmmo = 36;
@@ -29,16 +25,26 @@ public class SimpleShoot : MonoBehaviour
     [Tooltip("Which key to press for reload?")] public KeyCode reloadKey = KeyCode.R;
      public bool b_externalPermission = false;//manipulated by F_Player_Helpers.cs script
 
+    [Header("Sounds")]
+    [Tooltip("Sound when weapon fire a bullet")] public GameObject fireSound;
+    [Tooltip("Sound when weapon is asked to fire a bullet, but there is no availableAmmo")] public GameObject dryfireSound;
+    [Tooltip("Sound used when reloading")] public GameObject reloadSound;
+
+    [Header("UI")]
+    public Text currAmmo_txt;
+    public Text clipAmmo_txt;
+    public Text availableAmmo_txt;
+
     [Header("Settings")]
     [Tooltip("Specify time to destory the casing object")] [SerializeField] private float destroyTimer_casing = 2f;
     [Tooltip("Specify time to destory the bullet object")] [SerializeField] private float destroyTimer_bullet = 5f;
     [Tooltip("Bullet Speed")] [SerializeField] private float shotPower = 500f;
     [Tooltip("Casing Ejection Speed")] [SerializeField] private float ejectPower = 150f;
 
-    [Header("Sounds")]
-    [Tooltip("Sound when weapon fire a bullet")] public GameObject fireSound;
-    [Tooltip("Sound when weapon is asked to fire a bullet, but there is no availableAmmo")] public GameObject dryfireSound;
-    [Tooltip("Sound used when reloading")] public GameObject reloadSound;
+    [Header("Location Refrences")]
+    [SerializeField] private Animator anim;
+    [SerializeField] private Transform barrelLocation;
+    [SerializeField] private Transform casingExitLocation;
 
 
 
@@ -56,7 +62,7 @@ public class SimpleShoot : MonoBehaviour
 
     void Update()
     {
-
+        UIManagement();
         Reloading();
 
 
@@ -68,11 +74,11 @@ public class SimpleShoot : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Mouse1) == false) return;//first aim, then fire
 
-        if (Input.GetKey(KeyCode.Mouse0) && b_externalPermission)//fire
+        if (Input.GetKeyDown(KeyCode.Mouse0) && b_externalPermission)//fire
         {
-            if(Time.time > next_CooldownFire)
-            {
-                next_CooldownFire = Time.time + cooldownFire;
+            //if(Time.time > next_CooldownFire)
+            //{
+               // next_CooldownFire = Time.time + cooldownFire;
 
                 #region Current ammo (clip ammo) is 0. Reload if possible or play dry fire sound
 
@@ -100,7 +106,7 @@ public class SimpleShoot : MonoBehaviour
 
                 }
                 #endregion
-            }
+            //}
         }
 
 
@@ -194,6 +200,16 @@ public class SimpleShoot : MonoBehaviour
         b_processFinished = false;
         StopCoroutine(ReloadPatience(durationReloading));
     }
+
+
+
+    private void UIManagement()
+    {
+        currAmmo_txt.text = currentAmmo.ToString();
+        clipAmmo_txt.text = clipAmmo.ToString();
+        availableAmmo_txt.text = availableAmmo.ToString();
+
+    }//UIManagement
 
 
 

@@ -14,12 +14,14 @@ public class F_Player_Helpers : MonoBehaviour
     [HideInInspector] public float containerTime;
     [HideInInspector] public float cooldown = 0.1f;
     [HideInInspector] public float nextCooldown = 0;
+    [HideInInspector] public F_Weapon_Switch __scriptWpnSwitch;
 
 
 
 
     void Start()
     {
+        __scriptWpnSwitch = GetComponentInChildren<F_Weapon_Switch>();
 
     }//Start
 
@@ -27,9 +29,9 @@ public class F_Player_Helpers : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKey(KeyCode.Mouse1))
+        if (Input.GetKey(KeyCode.Mouse1) && __scriptWpnSwitch.item_2.activeSelf == true)
         {
-            anim.SetBool("Pain_Aiming", true);
+            anim.SetInteger("Pain", 1);
 
             if (Time.time > nextCooldown && containerTime < delayApprovalShooting)
             {
@@ -47,7 +49,7 @@ public class F_Player_Helpers : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.Mouse1) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.Space))
         {
-            anim.SetBool("Pain_Aiming", false);
+            anim.SetInteger("Pain", 0);
             containerTime = 0;
             pistolHandgun.GetComponentInChildren<SimpleShoot>().b_externalPermission = false;
         }
