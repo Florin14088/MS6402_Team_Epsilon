@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -23,10 +24,6 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         [Serializable] public class Horror_AI
         {
             public List<string> interestTags = new List<string>() { "Player" };//objects with any tags from this list will make this NPC curious
-            //comment for variable "ignoreSights": If this is 0 and the NPC spots the player, NPC will have player as target. 
-            //comment for variable "ignoreSights": If this is 1 and the NPC spots the player, NPC will vanish after a while or when player gets close and the value of this number will decrease by 1. And so on
-            //comment for variable "ignoreSights": When vanish, the NPC will warp to a position that is outside of player's FOV (behind the player at it's best)
-            public int ignoreSights = 2;
             [HideInInspector] public bool b_firstTime = true;//if true, it means that this NPC is seeing the player for the first time in this gaming session
             [HideInInspector] public enum Contact_Actions { Nothing, Warp, Stalk, Alert, Aggressive, Kill };//what will the NPC do when ignoreSights = 0 and the NPC spots the player (NOTE: Nothing = AFK NPC)
             public Contact_Actions contactActions;
@@ -36,29 +33,27 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         }
 
         [Serializable] public class ActionBehaviour_Warp
-        {
-            public bool b_overrideStoppingDistance = true;//true = the NPC will stop at pickedDistance instead of normal stoppingDistance dictated by NavMeshAgent
+        {            
+            public int charges = 2;//how many times the NPC will use the current Behaviour before moving to the next Behaviour
             public float min_distanceWarp = 6;
             public float max_distanceWarp = 10;
             public float pickedDistance;//random between min and max. A new distance is picked every time when player moves
-            public float delayWarp = 5;//first time when this happens, instead of having it instantly, a delay is added. Then this variable will become 0.
-            public float cooldown = 3;//how many seconds between 2 warps? (excluded the first one, that is delayed by delayWarp seconds, unless delayWarp starts with a value of 0)
-            [HideInInspector] public float nextCooldown = 0;//used together with cooldown
             public float radiusWarp = 30;//pick a point as destination in a sphere with radius "radiusWarp". The point will always be on NavMesh
         }
 
         [Serializable] public class ActionBehaviour_Stalk
         {
-            public bool b_overrideStoppingDistance = true;//true = the NPC will stop at pickedDistance instead of normal stoppingDistance dictated by NavMeshAgent
+            public int charges = 2;//how many times the NPC will use the current Behaviour before moving to the next Behaviour
             public float min_distanceStalk = 6;
             public float max_distanceStalk = 10;
             public float pickedDistance;//random between min and max. A new distance is picked every time when player moves
             public Vector3 playerPosition_new;//current position of the player
-            public Vector3 playerPosition_old;//the previous position of the player. If this one is not the same with "playerPosition_new", a new "pickedDistance" is picked
+            public Vector3 playerPosition_old = Vector3.zero;//the previous position of the player. If this one is not the same with "playerPosition_new", a new "pickedDistance" is picked
         }
 
         [Serializable] public class ActionBehaviour_Alert
         {
+            public int charges = 2;//how many times the NPC will use the current Behaviour before moving to the next Behaviour
             public float min_distanceAlert = 6;
             public float max_distanceAlert = 10;
             public float pickedDistance;//random between min and max. A new distance is picked every "cooldown" seconds. All NPCs (if any) in this radius will have "drawTarget = target of this NPC"
@@ -67,6 +62,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         [Serializable] public class ActionBehaviour_Aggressive
         {
+            public int charges = 2;//how many times the NPC will use the current Behaviour before moving to the next Behaviour
             public float min_cooldownAttack = 6;
             public float max_cooldownAttack = 10;
             public float pickedCooldown;//random between min and max. A new cooldown is picked after the NPC attacks the player
@@ -156,6 +152,9 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         #region PRIVATE.....................................................................................................
         public NavMeshAgent agent { get; private set; }
         public ThirdPersonCharacter character { get; private set; }
+
+        private List<Light> mannedLights = new List<Light>();
+        private bool b_lightManipulated = false;
         #endregion..........................................................................................................
 
 
@@ -182,6 +181,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
             cls_CoreHorror.contactActions = cls_CoreHorror.startFrom_contactActions;//NPC will start from phase indicated by "startFrom_contactActions"
             cls_Warp.pickedDistance = UnityEngine.Random.Range(cls_Warp.min_distanceWarp, cls_Warp.max_distanceWarp);//get the first picked distance for Warp Behaviour
+            cls_Stalk.pickedDistance = UnityEngine.Random.Range(cls_Stalk.min_distanceStalk, cls_Stalk.max_distanceStalk);//get the first picked distance for Stalk Behaviour
 
 
             cls_CoreHorror.contactActions = cls_CoreHorror.startFrom_contactActions;
@@ -193,6 +193,8 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         private void Update()
         {
             AI_Brain();
+
+            AlterLights_ON();
 
         }//Update
         #endregion..........................................................................................................
@@ -212,7 +214,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                 {
                     if (cls_Patrol.b_canPatrol && cls_RandWand.b_enabled)
                     {
-                        agent.SetDestination(gameObject.transform.position);
+                        agent.path = null;
                         cls_Patrol.b_canPatrol = false;
                         cls_RandWand.b_enabled = false;
                         return;
@@ -230,7 +232,8 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             #region DRAW TARGET INVESTIGATE
             if (cls_GenPar.drawTarget && cls_GenPar.target == null)//IF NPC GOT A NOISE TO INVESTIGATE AND NO MAIN TARGET IS AVAILABLE, GO TO DRAW TARGET
             {
-                agent.SetDestination(cls_GenPar.drawTarget.position);
+                if (cls_CoreHorror.contactActions != Horror_AI.Contact_Actions.Warp
+                    && cls_CoreHorror.contactActions != Horror_AI.Contact_Actions.Nothing) agent.SetDestination(cls_GenPar.drawTarget.position);
             }
             #endregion
 
@@ -245,23 +248,24 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             if (cls_GenPar.target)//NPC GOT A CLEAR TARGET TO GO
             {
                 if (cls_GenPar.drawTarget) cls_GenPar.drawTarget = null;//CLEAR ANY DRAW TARGET BECAUSE NO NEED TO INVESTIGATE NOISES WHEN A TARGET IS AVAILABLE
-                agent.SetDestination(cls_GenPar.target.position);
+                if(cls_CoreHorror.contactActions != Horror_AI.Contact_Actions.Warp
+                    && cls_CoreHorror.contactActions != Horror_AI.Contact_Actions.Nothing) agent.SetDestination(cls_GenPar.target.position);
             }
             #endregion
 
 
-            if(cls_Stalk.b_overrideStoppingDistance == false)
+            if (agent.remainingDistance > agent.stoppingDistance && cls_CoreHorror.contactActions != Horror_AI.Contact_Actions.Warp
+                    && cls_CoreHorror.contactActions != Horror_AI.Contact_Actions.Nothing)
             {
+                character.Move(agent.desiredVelocity, false, false);
+            }
+            else//CLOSE ENOUGH TO STOP GOING TO TARGET (DO A "Contact_Actions" ACTION MAYBE)
+            {
+                character.Move(Vector3.zero, false, false);
+                //if (cls_GenPar.drawTarget) cls_GenPar.drawTarget = null;
 
-                if (agent.remainingDistance > agent.stoppingDistance)//NOT CLOSE ENOUGH TO TARGET (USE DICTATED NAV MESH AGENT STOPPING DISTANCE)
+                if (cls_GenPar.target)
                 {
-                    character.Move(agent.desiredVelocity, false, false);
-                }
-                else//CLOSE ENOUGH TO STOP GOING TO TARGET (DO A "Contact_Actions" ACTION MAYBE)
-                {
-                    character.Move(Vector3.zero, false, false);
-                    //if (cls_GenPar.drawTarget) cls_GenPar.drawTarget = null;
-
                     switch (cls_CoreHorror.contactActions)
                     {
                         case Horror_AI.Contact_Actions.Nothing:
@@ -273,69 +277,29 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                             break;
 
                         case Horror_AI.Contact_Actions.Stalk:
+                            ContactAction_Stalk();
                             break;
 
                         case Horror_AI.Contact_Actions.Alert:
+                            ContactAction_Alert();
                             break;
 
                         case Horror_AI.Contact_Actions.Aggressive:
+                            ContactAction_Aggressive();
                             break;
 
                         case Horror_AI.Contact_Actions.Kill:
+                            ContactAction_Kill();
                             break;
 
                         default:
                             break;
                     }
-
-
                 }
+
 
             }
-            else
-            {
 
-                if (agent.remainingDistance > cls_Stalk.pickedDistance)//NOT CLOSE ENOUGH TO TARGET (USE OVERRIDE DISTANCE)
-                {
-                    character.Move(agent.desiredVelocity, false, false);
-                }
-                else//CLOSE ENOUGH TO STOP GOING TO TARGET (DO A "Contact_Actions" ACTION)
-                {
-                    character.Move(Vector3.zero, false, false);
-                    //if (cls_GenPar.drawTarget) cls_GenPar.drawTarget = null;
-
-                    
-
-                    switch (cls_CoreHorror.contactActions)
-                    {
-                        case Horror_AI.Contact_Actions.Nothing:
-                            ContactAction_Nothing();
-                            break;
-
-                        case Horror_AI.Contact_Actions.Warp:
-                            ContactAction_Warp();
-                            break;
-
-                        case Horror_AI.Contact_Actions.Stalk:
-                            break;
-
-                        case Horror_AI.Contact_Actions.Alert:
-                            break;
-
-                        case Horror_AI.Contact_Actions.Aggressive:
-                            break;
-
-                        case Horror_AI.Contact_Actions.Kill:
-                            break;
-
-                        default:
-                            break;
-                    }
-
-                }
-
-            }
-           
 
             #endregion
 
@@ -531,9 +495,8 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             if (cls_GenPar.target != null) cls_GenPar.target = null;
             if (cls_GenPar.possibleTarget != null) cls_GenPar.possibleTarget = null;
             if (cls_GenPar.drawTarget != null) cls_GenPar.drawTarget = null;
-            if (cls_GenPar.sightRadius > 0) cls_GenPar.sightRadius = 0;
+            //if (cls_GenPar.sightRadius > 0) cls_GenPar.sightRadius = 0;
             
-
         }//ContactAction_Nothing
 
 
@@ -541,55 +504,109 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         #region WARP
         void ContactAction_Warp()
         {
-            if (cls_GenPar.possibleTarget == null) return;
 
-            #region Get distance and angle needed for the behaviour
-            float dist = Vector3.Distance(cls_GenPar.possibleTarget.transform.position, gameObject.transform.position);
-            Vector3 targetDir = cls_GenPar.possibleTarget.transform.position - gameObject.transform.position;
-            float angle = Vector3.Angle(targetDir, transform.forward);//find the angle between agent and target
-            #endregion
-
-
-            if (Physics.Raycast(gameObject.transform.position, targetDir, out cls_CoreHorror.hit, dist))
+            if(Vector3.Distance(cls_GenPar.target.transform.position, transform.position) <= cls_Warp.pickedDistance)
             {
-                if (cls_CoreHorror.hit.collider != null)
+                cls_Warp.pickedDistance = UnityEngine.Random.Range(cls_Warp.min_distanceWarp, cls_Warp.max_distanceWarp);
+                
+                if(cls_Warp.charges > 0) cls_Warp.charges--;
+
+                Warping_NPC();
+
+                if (cls_Warp.charges <= 0)
                 {
-                    foreach (string s in cls_CoreHorror.interestTags)
-                    {
-                        if (cls_CoreHorror.hit.collider.gameObject.transform.root.tag == s)
-                        {
-                            print("Warp Mechanic");
-                            #region DO WARP MECHANIC BECAUSE NPC CAN SEE PLAYER
-                            if (cls_Warp.delayWarp > 0)
-                            {
-                                cls_Warp.nextCooldown = Time.time + cls_Warp.delayWarp;//prevent the first warp to be the first frame when it's allowed
-                                cls_Warp.delayWarp = 0;
-                                cls_Warp.pickedDistance = UnityEngine.Random.Range(cls_Warp.min_distanceWarp, cls_Warp.max_distanceWarp);
-                            }
+                    ContactAction_Nothing();
+                    cls_CoreHorror.contactActions = Horror_AI.Contact_Actions.Stalk;
+                }
 
-                            if (Time.time > cls_Warp.nextCooldown)
-                            {
-                                cls_Warp.nextCooldown = Time.time + cls_Warp.cooldown;
+            }       
 
-                                agent.Warp(RandomNavSphere(transform.position, cls_Warp.radiusWarp, -1));//teleport the agent
-                            }
-                            #endregion
-                        }
 
-                    }
+        }//ContactAction_Warp
 
+
+        void Warping_NPC()
+        {
+            StartCoroutine(LightsFlicker());
+            agent.Warp(RandomNavSphere(transform.position, cls_Warp.radiusWarp, -1));//teleport the agent
+            cls_Warp.pickedDistance = UnityEngine.Random.Range(cls_Warp.min_distanceWarp, cls_Warp.max_distanceWarp);
+
+        }//Warping_NPC
+
+
+        void AlterLights_OFF(Vector3 center, float radius)
+        {
+            Collider[] hitColliders = Physics.OverlapSphere(center, radius);
+            foreach (Collider hitC in hitColliders)
+            {
+                if (hitC.gameObject.GetComponent<Light>())
+                {
+                    hitC.gameObject.GetComponent<Light>().enabled = false;
+                    mannedLights.Add(hitC.gameObject.GetComponent<Light>());
+                    print(mannedLights.Count);
                 }
 
             }
 
+        }//AlterLights_OFF
 
-        }//ContactAction_Warp
+        void AlterLights_ON()
+        {
+            if (b_lightManipulated == false) return;
+
+            if (mannedLights.Count == 0 && b_lightManipulated == true)
+            {
+                b_lightManipulated = false;
+                return;
+            } 
+
+            foreach(Light l in mannedLights)
+            {
+                l.enabled = true;
+                mannedLights.Remove(l);
+                print(mannedLights.Count);
+            }
+
+        }//AlterLights_ON
+
+
+        IEnumerator LightsFlicker()
+        {
+            AlterLights_OFF(transform.position, 10);
+            yield return new WaitForSeconds(0.4f);
+            yield return new WaitForEndOfFrame();
+            b_lightManipulated = true;
+
+        }//LightsFlicker
+
         #endregion
 
 
         void ContactAction_Stalk()
         {
+            if (Vector3.Distance(cls_GenPar.target.transform.position, transform.position) <= cls_Stalk.pickedDistance)
+            {
+                agent.SetDestination(transform.position);
+                character.Move(Vector3.zero, false, false);
+            }
 
+            if (Vector3.Distance(cls_GenPar.target.transform.position, transform.position) <= cls_Stalk.pickedDistance/2)
+            {
+                Warping_NPC();
+                ContactAction_Nothing();
+            }
+
+            cls_Stalk.playerPosition_new = GameObject.FindGameObjectWithTag("Player").transform.position;
+            if (cls_Stalk.playerPosition_old == Vector3.zero) cls_Stalk.playerPosition_old = cls_Stalk.playerPosition_new;
+
+            if(cls_Stalk.playerPosition_old != cls_Stalk.playerPosition_new)
+            {
+                cls_Stalk.charges--;
+                cls_Stalk.pickedDistance = UnityEngine.Random.Range(cls_Stalk.min_distanceStalk, cls_Stalk.max_distanceStalk);
+                cls_Stalk.playerPosition_old = cls_Stalk.playerPosition_new;
+            }
+
+            
 
         }//ContactAction_Stalk
         
