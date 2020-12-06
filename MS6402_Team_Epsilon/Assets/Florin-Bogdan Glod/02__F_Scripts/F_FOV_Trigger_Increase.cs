@@ -62,17 +62,17 @@ public class F_FOV_Trigger_Increase : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Trigger Enter");
+        //Debug.Log("Trigger Enter");
         if(other.gameObject == startFov_object)
         {
-            Debug.Log("Trigger increase");
+           // Debug.Log("Trigger increase");
             StopAllCoroutines();
             StartCoroutine(FOVKickUp());
         }
 
         if(other.gameObject == endFov_object)
         {
-            Debug.Log("Trigger decrease");
+            //Debug.Log("Trigger decrease");
             StopAllCoroutines();
             StartCoroutine(FOVKickDown());
         }

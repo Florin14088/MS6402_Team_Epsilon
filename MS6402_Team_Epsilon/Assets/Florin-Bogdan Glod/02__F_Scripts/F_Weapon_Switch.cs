@@ -33,7 +33,7 @@ public class F_Weapon_Switch : MonoBehaviour
     {
         if (Input.GetKeyDown(key_itm1))
         {
-            print("Hands");
+            //print("Hands");
             item_1.SetActive(true);
             item_2.SetActive(false);
 
@@ -44,7 +44,7 @@ public class F_Weapon_Switch : MonoBehaviour
 
         if (Input.GetKeyDown(key_itm2))
         {
-            print("Pistol");
+            //print("Pistol");
             item_1.SetActive(false);
             item_2.SetActive(true);
 

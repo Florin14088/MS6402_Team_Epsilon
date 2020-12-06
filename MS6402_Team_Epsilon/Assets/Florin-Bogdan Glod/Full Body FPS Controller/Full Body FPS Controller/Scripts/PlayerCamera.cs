@@ -77,7 +77,6 @@ namespace EasySurvivalScripts
         void Update()
         {
             //SwitchCameraPerspectiveInput();
-
             GetSetPerspective();
 
             RotateCamera();

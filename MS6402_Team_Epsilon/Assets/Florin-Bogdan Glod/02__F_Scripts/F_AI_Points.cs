@@ -47,7 +47,6 @@ public class F_AI_Points : MonoBehaviour
     {
         if (b_player_Been_Here && b_alreadyCoroutine == false)
         {
-            Debug.Log("Is Invisible");
             b_alreadyCoroutine = true;
 
             child_NPC.SetActive(true);
