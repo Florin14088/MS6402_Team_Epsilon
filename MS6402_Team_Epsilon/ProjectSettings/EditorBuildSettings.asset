@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Ana-Maria Mavroianu/Scenes/AM_G_Floor.unity
+    guid: 38c06ee33441b094d8b30cd5ec069e39
   m_configObjects: {}
