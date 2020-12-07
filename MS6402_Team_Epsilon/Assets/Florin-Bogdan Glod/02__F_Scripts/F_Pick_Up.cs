@@ -12,6 +12,7 @@ public class F_Pick_Up : MonoBehaviour
         public List<string> interestTag = new List<string>() {"Player"};
         public bool b_oneUse = false;//destroy after use? if this is false, then after each use, the object will be hidden for cooldownUse seconds
         public float cooldownUse = 10;
+        public bool b_overrideDestroy = false;
     }
 
     [System.Serializable] public class FearStuff
@@ -33,6 +34,34 @@ public class F_Pick_Up : MonoBehaviour
         [Header("Stuff regarding available Ammo")]
         public bool b_useThis = false;
         [Range(0, 100)] public float amount = 0; 
+    }
+
+    [System.Serializable] public class GOAL_Main_1
+    {
+        [Header("Stuff regarding first Main goal")]
+        public bool b_collected = false;
+        
+    }
+
+    [System.Serializable] public class GOAL_Side_1
+    {
+        [Header("Stuff regarding first side goal")]
+        public bool b_collected = false;
+
+    }
+
+    [System.Serializable] public class GOAL_Side_2
+    {
+        [Header("Stuff regarding second side goal")]
+        public bool b_collected = false;
+
+    }
+
+    [System.Serializable] public class GOAL_Side_3
+    {
+        [Header("Stuff regarding third side goal")]
+        public bool b_collected = false;
+
     }
     #endregion
 
@@ -128,7 +157,7 @@ public class F_Pick_Up : MonoBehaviour
             {
                 if (other.gameObject.tag == s)
                 {
-                    other.gameObject.transform.root.transform.gameObject.GetComponent<F_Range_Attack>().availableAmmo += _class_Available_AMMO.amount;
+                    other.gameObject.transform.root.transform.gameObject.GetComponentInChildren<SimpleShoot>().availableAmmo += _class_Available_AMMO.amount;
                 }//bracket froom IF
 
             }//bracket from FOREACH
@@ -140,16 +169,21 @@ public class F_Pick_Up : MonoBehaviour
 
         #region Here object is destroyed or hidden for a while (see General class)
 
-        foreach (string s in _class_General.interestTag)
+        if(_class_General.b_overrideDestroy == false)
         {
-            if (other.gameObject.tag == s)
+            foreach (string s in _class_General.interestTag)
             {
-                if (_class_General.b_oneUse) Destroy(gameObject);
-                else StartCoroutine(HiddenMechanic(_class_General.cooldownUse));
+                if (other.gameObject.tag == s)
+                {
+                    if (_class_General.b_oneUse) Destroy(gameObject);
+                    else StartCoroutine(HiddenMechanic(_class_General.cooldownUse));
+                }
             }
-        }                
+        }
+
 
         #endregion
+
 
     }//OnTriggerEnter
 

@@ -30,7 +30,7 @@ public class F_Door_Controller : MonoBehaviour
     public string doorStuck_NEED_KEY_msg = "Door is locked. Looks like I need a key";
     public string doorClosed_msg ="Open the door by pressing ";
     public string doorOpened_msg ="Close the door by pressing ";
-    public Animator anim { private get; set; }
+    public Animator anim;
 
 
 
@@ -88,7 +88,6 @@ public class F_Door_Controller : MonoBehaviour
 
     IEnumerator Door_Busy_Opening()
     {
-        Debug.Log("Door_ Opening");
         b_readyToUse = false;
 
         if (b_I_am_v1) anim.SetInteger("Pain", 5);
@@ -104,7 +103,6 @@ public class F_Door_Controller : MonoBehaviour
 
     IEnumerator Door_Busy_Closing()
     {
-        Debug.Log("Door_ Closing");
         b_readyToUse = false;
 
         if (anim.GetInteger("Pain") == 5) anim.SetInteger("Pain" , 4);
@@ -131,8 +129,18 @@ public class F_Door_Controller : MonoBehaviour
 
 
 
+    #region FUNCTIONS FOR NPCs
 
-    
+
+    public void StuckDoor()
+    {
+        if (b_readyToUse == false) return;
+        StartCoroutine(Door_Busy_Stuck());
+    }//StuckDoor
+
+    #endregion
+
+
 
 
 }//END

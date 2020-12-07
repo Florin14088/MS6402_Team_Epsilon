@@ -1518,7 +1518,83 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c5335f0882fe4d478883cc8c58ce906, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
+  cls_GenPar:
+    target: {fileID: 0}
+    possibleTarget: {fileID: 0}
+    drawTarget: {fileID: 0}
+    sightRadius: 30
+  cls_CoreHorror:
+    interestTags:
+    - Player
+    b_firstTime: 1
+    contactActions: 0
+    startFrom_contactActions: 1
+  cls_Warp:
+    charges: 2
+    min_distanceWarp: 4
+    max_distanceWarp: 6
+    pickedDistance: 0
+    radiusWarp: 30
+  cls_Stalk:
+    charges: 5
+    min_distanceStalk: 6
+    max_distanceStalk: 10
+    pickedDistance: 0
+    playerPosition_new: {x: 0, y: 0, z: 0}
+    playerPosition_old: {x: 0, y: 0, z: 0}
+  cls_Alert:
+    charges: 2
+    min_distanceAlert: 6
+    max_distanceAlert: 10
+    pickedDistance: 0
+  cls_Aggressive:
+    charges: 2
+    min_distanceStalk: 6
+    max_distanceStalk: 10
+    pickedDistance: 0
+    nextCooldown: 0
+    playerPosition_new: {x: 0, y: 0, z: 0}
+    playerPosition_old: {x: 0, y: 0, z: 0}
+    cooldownAttack: 3
+    nextCooldownAttack: 0
+    prefabPickUp_FEAR: {fileID: 2594230326964815237, guid: 8d720f69b4b14c1479f9ed42c3f4b074, type: 3}
+  cls_Kill:
+    min_distanceStalk: 6
+    max_distanceStalk: 10
+    pickedDistance: 0
+    nextCooldown: 0
+    playerPosition_new: {x: 0, y: 0, z: 0}
+    playerPosition_old: {x: 0, y: 0, z: 0}
+    cooldownAttack: 3
+    nextCooldownAttack: 0
+    prefabPickUp_FEAR: {fileID: 2594230326964815237, guid: caa96daea1b82a24ba3946dc44c752f7, type: 3}
+  cls_Senses:
+    b_canUseDoors: 1
+    range_manipulate: 20
+    cooldownUse: 10
+    nextCooldown: 0
+  cls_Patrol:
+    b_canPatrol: 0
+    b_RecyclePoints: 1
+    patrolPoints:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    stoppingDistance: 2
+    b_pause_at_destination: 1
+    pauseTimer: 2
+    containerPauseTimer: 0
+    cooldown: 1
+    nextCooldown: 0
+    waypoint_index: 0
+    waypoint_dist: 0
+  cls_RandWand:
+    b_enabled: 0
+    wanderRadius: 20
+    wanderTimer: 10
+    stoppingDistance: 3
+    timer: 0
+    newPos: {x: 0, y: 0, z: 0}
 --- !u!114 &5530081761369123947
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 7708192990989287725}
   - component: {fileID: 7708192990988448205}
   - component: {fileID: 7708192990992443535}
-  m_Layer: 0
+  - component: {fileID: 616368942}
+  m_Layer: 16
   m_Name: Door Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,6 +98,22 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 2.769574, y: 4.755562, z: 0.13270389}
   m_Center: {x: 1.3070116, y: 0.00000017550386, z: 0.009451298}
+--- !u!208 &616368942
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7708192990990176845}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.3850001, y: 2.378, z: 0.266}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 1.307, y: 0, z: 0.078}
+  m_TimeToStationary: 0.5
 --- !u!1 &7708192991416334283
 GameObject:
   m_ObjectHideFlags: 0
@@ -111,7 +128,7 @@ GameObject:
   - component: {fileID: 7708192991416334287}
   - component: {fileID: 7708192991416334280}
   - component: {fileID: 7708192991416334281}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: Trigger v2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -239,7 +256,7 @@ GameObject:
   - component: {fileID: 7708192991516240405}
   - component: {fileID: 7708192991516240406}
   - component: {fileID: 7708192991516240427}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: Trigger v1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -527,7 +544,8 @@ GameObject:
   - component: {fileID: 7708192991881852834}
   - component: {fileID: 7708192991881852832}
   - component: {fileID: 7708192991881852833}
-  m_Layer: 0
+  - component: {fileID: 8708372234796295838}
+  m_Layer: 16
   m_Name: DOOR (ready to use)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -542,7 +560,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7708192991881852835}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.78, y: 2.76, z: -27.12}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.2874609, y: 1.1813734, z: 1.1813734}
   m_Children:
   - {fileID: 7708192991516240407}
@@ -582,6 +600,7 @@ MonoBehaviour:
   doorStuck_NEED_KEY_msg: Door is locked. Looks like I need a key
   doorClosed_msg: 'Open the door by pressing '
   doorOpened_msg: 'Close the door by pressing '
+  anim: {fileID: 0}
 --- !u!95 &7708192991881852833
 Animator:
   serializedVersion: 3
@@ -601,6 +620,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!65 &8708372234796295838
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7708192991881852835}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.1, y: 0.1, z: 0.1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7708192992139308182
 GameObject:
   m_ObjectHideFlags: 0
@@ -696,7 +728,7 @@ GameObject:
   - component: {fileID: 7708192992362790900}
   - component: {fileID: 7708192992362790901}
   - component: {fileID: 7708192992362790902}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: Trigger Extra Closing Edge Door
   m_TagString: Untagged
   m_Icon: {fileID: 0}

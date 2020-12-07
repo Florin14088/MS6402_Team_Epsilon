@@ -30,6 +30,9 @@ public class F_FEAR_Mechanic : MonoBehaviour
     [Space]
     [Space]
     public GameObject needleFear_UI;
+    public GameObject fearPivot_Holder;//some game object that holds the 3 stages of Visual Fear
+    public GameObject firstHearthBeat;
+    public GameObject secondHearthBeat;
 
 
 
@@ -49,6 +52,10 @@ public class F_FEAR_Mechanic : MonoBehaviour
         difference_monitor_container_Y = 0;//difference between monitor_rotY and container_rotY is 0 at the beginning
         difference_monitor_container_X = 0;//difference between monitor_rotX and container_rotX is 0 at the beginning
 
+
+        firstHearthBeat.SetActive(false);
+        secondHearthBeat.SetActive(false);
+
     }//Start
 
 
@@ -59,6 +66,10 @@ public class F_FEAR_Mechanic : MonoBehaviour
     {
         monitor_rotY = playerTrack.transform.rotation.y;//rotation is put into this variable
         monitor_rotX = camTrack.transform.rotation.x;//rotation is put into this variable
+
+
+        
+
 
 
         if (container_rotY != monitor_rotY)//if the previous (and stored) value is different from the current value
@@ -103,6 +114,30 @@ public class F_FEAR_Mechanic : MonoBehaviour
             containerFear = fear_meter;//change the last known value of fear_meter;
 
             needleFear_UI.transform.rotation = Quaternion.Euler(0 , 0 , 90 - (fear_meter * 1.8f));//1.8f = 180/100 (frica e de la 0 la 100, acul se invarte de la 90 la -90)
+
+            fearPivot_Holder.transform.position = new Vector3(transform.position.x, transform.position.y, fear_meter + fearPivot_Holder.transform.root.transform.position.z);
+
+            if (fear_meter < 50)
+            {
+                firstHearthBeat.SetActive(false);
+            }
+
+            if (fear_meter < 90)
+            {
+                secondHearthBeat.SetActive(false);
+            }
+
+            if (fear_meter >= 50 && fear_meter < 90)
+            {
+                firstHearthBeat.SetActive(true);
+                secondHearthBeat.SetActive(false);
+            }
+
+            if (fear_meter >= 90)
+            {
+                firstHearthBeat.SetActive(false);
+                secondHearthBeat.SetActive(true);
+            }
 
         }
 

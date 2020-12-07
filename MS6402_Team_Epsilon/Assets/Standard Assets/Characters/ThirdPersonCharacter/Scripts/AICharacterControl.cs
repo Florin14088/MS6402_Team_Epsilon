@@ -13,7 +13,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
     public class AICharacterControl : MonoBehaviour
     {
         #region Own CLASSES.................................................................................................
-        [Serializable] public class Generalcls_Patrols
+        [Serializable] public class General_Parameters
         {
             public Transform target;//this is the target, NPC will behave according to "Contact_Actions"
             public Transform possibleTarget;//whenever function "GetTargetInRadius" get's an object with any tag from "interestTags", the NPC will do a raycast to that object to see if it can SEE it or not.
@@ -57,32 +57,33 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             public float min_distanceAlert = 6;
             public float max_distanceAlert = 10;
             public float pickedDistance;//random between min and max. A new distance is picked every "cooldown" seconds. All NPCs (if any) in this radius will have "drawTarget = target of this NPC"
-            [HideInInspector] public float nextCooldown = 0;
         }
 
         [Serializable] public class ActionBehaviour_Aggressive
         {
             public int charges = 2;//how many times the NPC will use the current Behaviour before moving to the next Behaviour
-            public float min_cooldownAttack = 6;
-            public float max_cooldownAttack = 10;
-            public float pickedCooldown;//random between min and max. A new cooldown is picked after the NPC attacks the player
+            public float min_distanceStalk = 6;
+            public float max_distanceStalk = 10;
+            public float pickedDistance;//random between min and max. A new distance is picked every time when player moves
             [HideInInspector] public float nextCooldown = 0;
-            public float fearPerHit = 20;//the Player does not have Health. Instead, FEAR is used as Health. Every hit given to the player will add "fearPerHit" to FEAR Meter of the Player
+            public Vector3 playerPosition_new;//current position of the player
+            public Vector3 playerPosition_old = Vector3.zero;//the previous position of the player. If this one is not the same with "playerPosition_new", a new "pickedDistance" is picked
+            public float cooldownAttack = 3f;
+            [HideInInspector] public float nextCooldownAttack = 0;
+            public GameObject prefabPickUp_FEAR;//instantiate at player's position to give fear
         }
 
         [Serializable] public class ActionBehaviour_Kill
         {
-            public float min_cooldownAttack = 6;
-            public float max_cooldownAttack = 10;
-            public float pickedCooldown;//random between min and max. A new cooldown is picked after the NPC attacks the player
+            public float min_distanceStalk = 6;
+            public float max_distanceStalk = 10;
+            public float pickedDistance;//random between min and max. A new distance is picked every time when player moves
             [HideInInspector] public float nextCooldown = 0;
-            public float fearPerHit = 40;//the Player does not have Health. Instead, FEAR is used as Health. Every hit given to the player will add "fearPerHit" to FEAR Meter of the Player
-        }
-
-        [Serializable] public class Senses
-        {
-            public bool b_canHear = false;
-
+            public Vector3 playerPosition_new;//current position of the player
+            public Vector3 playerPosition_old = Vector3.zero;//the previous position of the player. If this one is not the same with "playerPosition_new", a new "pickedDistance" is picked
+            public float cooldownAttack = 3f;
+            [HideInInspector] public float nextCooldownAttack = 0;
+            public GameObject prefabPickUp_FEAR;//instantiate at player's position to give fear
         }
 
         [Serializable] public class Patrolling
@@ -117,7 +118,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         #region PUBLIC......................................................................................................
         [Header("General Matter")]
-        public Generalcls_Patrols cls_GenPar = new Generalcls_Patrols();
+        public General_Parameters cls_GenPar = new General_Parameters();
 
         [Header("Core A.I. Parameters")]
         public Horror_AI cls_CoreHorror = new Horror_AI();
@@ -136,9 +137,6 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         [Header("Kill Action Parameters")]
         public ActionBehaviour_Kill cls_Kill = new ActionBehaviour_Kill();
-
-        [Header("How smart the AI can be")]
-        public Senses cls_Senses = new Senses();
 
         [Header("Patrolling Behavious")]
         public Patrolling cls_Patrol = new Patrolling();
@@ -182,6 +180,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             cls_CoreHorror.contactActions = cls_CoreHorror.startFrom_contactActions;//NPC will start from phase indicated by "startFrom_contactActions"
             cls_Warp.pickedDistance = UnityEngine.Random.Range(cls_Warp.min_distanceWarp, cls_Warp.max_distanceWarp);//get the first picked distance for Warp Behaviour
             cls_Stalk.pickedDistance = UnityEngine.Random.Range(cls_Stalk.min_distanceStalk, cls_Stalk.max_distanceStalk);//get the first picked distance for Stalk Behaviour
+            cls_Alert.pickedDistance = UnityEngine.Random.Range(cls_Alert.min_distanceAlert, cls_Alert.max_distanceAlert);//get the first picked distance for Alert Behaviour
 
 
             cls_CoreHorror.contactActions = cls_CoreHorror.startFrom_contactActions;
@@ -262,7 +261,24 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             else//CLOSE ENOUGH TO STOP GOING TO TARGET (DO A "Contact_Actions" ACTION MAYBE)
             {
                 character.Move(Vector3.zero, false, false);
-                //if (cls_GenPar.drawTarget) cls_GenPar.drawTarget = null;
+
+                if(cls_CoreHorror.contactActions == Horror_AI.Contact_Actions.Aggressive)
+                {
+                    if(Time.time > cls_Aggressive.nextCooldown)
+                    {
+                        cls_Aggressive.nextCooldown = Time.time + cls_Aggressive.cooldownAttack;
+                        StartCoroutine(SendDamageFEAR(cls_Aggressive.prefabPickUp_FEAR));
+                    }
+                }
+
+                if(cls_CoreHorror.contactActions == Horror_AI.Contact_Actions.Kill)
+                {
+                    if(Time.time > cls_Kill.nextCooldown)
+                    {
+                        cls_Kill.nextCooldown = Time.time + cls_Kill.cooldownAttack;
+                        StartCoroutine(SendDamageFEAR(cls_Kill.prefabPickUp_FEAR));
+                    }
+                }
 
                 if (cls_GenPar.target)
                 {
@@ -305,7 +321,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         }//AI_Brain
 
-
+        
 
         #region USED BY HORROR AI CORE WHEN HAVING (OR SEARCHING) TARGET
 
@@ -543,7 +559,6 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                 {
                     hitC.gameObject.GetComponent<Light>().enabled = false;
                     mannedLights.Add(hitC.gameObject.GetComponent<Light>());
-                    print(mannedLights.Count);
                 }
 
             }
@@ -564,7 +579,6 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             {
                 l.enabled = true;
                 mannedLights.Remove(l);
-                print(mannedLights.Count);
             }
 
         }//AlterLights_ON
@@ -601,12 +615,16 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
             if(cls_Stalk.playerPosition_old != cls_Stalk.playerPosition_new)
             {
-                cls_Stalk.charges--;
+                if(cls_Stalk.charges > 0) cls_Stalk.charges--;
                 cls_Stalk.pickedDistance = UnityEngine.Random.Range(cls_Stalk.min_distanceStalk, cls_Stalk.max_distanceStalk);
                 cls_Stalk.playerPosition_old = cls_Stalk.playerPosition_new;
             }
 
-            
+            if (cls_Stalk.charges <= 0)
+            {
+                ContactAction_Nothing();
+                cls_CoreHorror.contactActions = Horror_AI.Contact_Actions.Alert;
+            }
 
         }//ContactAction_Stalk
         
@@ -614,28 +632,81 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         void ContactAction_Alert()
         {
+            if (Vector3.Distance(cls_GenPar.target.transform.position, transform.position) <= cls_Alert.pickedDistance)
+            {
+                cls_Alert.pickedDistance = UnityEngine.Random.Range(cls_Alert.min_distanceAlert, cls_Alert.max_distanceAlert);
 
+                if (cls_Alert.charges > 0) cls_Alert.charges--;
+                //PLAY SOME VOICES
+                Warping_NPC();
+
+                if (cls_Alert.charges <= 0)
+                {
+                    ContactAction_Nothing();
+                    cls_CoreHorror.contactActions = Horror_AI.Contact_Actions.Aggressive;
+                }
+
+            }
 
         }//ContactAction_Alert
-        
 
 
+        #region Aggressive
         void ContactAction_Aggressive()
         {
+            //part of this mechanic is in Function AI_Brain() in region MAIN TARGET
 
+            cls_Aggressive.playerPosition_new = GameObject.FindGameObjectWithTag("Player").transform.position;
+            if (cls_Aggressive.playerPosition_old == Vector3.zero) cls_Aggressive.playerPosition_old = cls_Aggressive.playerPosition_new;
+
+            if (cls_Aggressive.playerPosition_old != cls_Aggressive.playerPosition_new)
+            {
+                if (cls_Aggressive.charges > 0) cls_Aggressive.charges--;
+                cls_Aggressive.pickedDistance = UnityEngine.Random.Range(cls_Aggressive.min_distanceStalk, cls_Aggressive.max_distanceStalk);
+                cls_Aggressive.playerPosition_old = cls_Aggressive.playerPosition_new;
+            }
+
+            if (cls_Aggressive.charges <= 0)
+            {
+                ContactAction_Nothing();
+                Warping_NPC();
+                cls_CoreHorror.contactActions = Horror_AI.Contact_Actions.Kill;
+            }
 
         }//ContactAction_Aggressive
-        
+        #endregion
+
+
+        IEnumerator SendDamageFEAR(GameObject prefab)
+        {
+            //play creepy sounds
+            yield return new WaitForSeconds(2);
+            Instantiate(prefab, cls_GenPar.target.transform.position, cls_GenPar.target.transform.rotation);
+            yield return new WaitForEndOfFrame();
+            yield break;
+        }//SendDamageFEAR
 
 
         void ContactAction_Kill()
         {
+            //part of this mechanic is in Function AI_Brain() in region MAIN TARGET
 
+            cls_Kill.playerPosition_new = GameObject.FindGameObjectWithTag("Player").transform.position;
+            if (cls_Kill.playerPosition_old == Vector3.zero) cls_Kill.playerPosition_old = cls_Kill.playerPosition_new;
+
+            if (cls_Kill.playerPosition_old != cls_Kill.playerPosition_new)
+            {
+                cls_Kill.pickedDistance = UnityEngine.Random.Range(cls_Kill.min_distanceStalk, cls_Kill.max_distanceStalk);
+                cls_Kill.playerPosition_old = cls_Kill.playerPosition_new;
+            }
 
         }//ContactAction_Kill
 
         #endregion
 
+
+
+        
 
 
         public void SetTarget(Transform target) { cls_GenPar.target = target; }//SetTarget
